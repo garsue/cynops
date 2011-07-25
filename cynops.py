@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # vim:fileencoding=utf-8
 
+import operator
+
 
 class Relation(object):
     """Relation class based on relational model"""
@@ -29,21 +31,26 @@ class Relation(object):
         return str(self.body)
 
     def display(self):
-        result = '\t'.join(self.head) + '\n' + '-' * 70 + '\n'
+        head_seq = tuple(self.head)
+        result = '\t'.join(head_seq) + '\n' + '-' * 70 + '\n'
         for ruple in (dict(ruple) for ruple in self.body):
-            for attr in ruple:
+            for attr in head_seq:
                 result += str(ruple[attr]) + '\t'
             else:
                 result += '\n'
         print result
 
-    def restrict(self, target):
+    def restrict(self, target, cmpattr=False, theta=operator.eq):
         """Return restriction. Argument is dictionary."""
         result = Relation(self.head)
         for ruple in (dict(ruple) for ruple in self.body):
             for attr in target:
-                if ruple[attr] == target[attr]:
-                    result.add(ruple)
+                if cmpattr:
+                    if theta(ruple[attr], ruple[target[attr]]):
+                        result.add(ruple)
+                else:
+                    if theta(ruple[attr], target[attr]):
+                        result.add(ruple)
         return result
 
     def project(self, target):

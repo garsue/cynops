@@ -4,6 +4,7 @@
 from cynops import Relation
 from unittest import TestCase, TestLoader, TextTestRunner
 import pickle
+import operator
 
 
 class TestRelation(TestCase):
@@ -129,6 +130,16 @@ class TestRelation(TestCase):
                  'CITY': 'London'})
         target = {'CITY': 'London'}
         self.assertEqual(self.s.restrict(target), psd)
+
+    def test_theta(self):
+        c = 'CITY'
+        sc = 'SCITY'
+        pc = 'PCITY'
+        with open('./test_theta.dump', 'r') as f:
+            psd = pickle.load(f)
+        test = self.s.rename({c: sc}).join(self.p.rename({c: pc}))
+        test = test.restrict({sc: pc}, cmpattr=True, theta=operator.ne)
+        self.assertEqual(test, psd)
 
     def test_project(self):
         psd = Relation(frozenset(['SNAME', 'CITY', 'STATUS']))
