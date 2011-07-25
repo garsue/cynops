@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# vim: fileencoding=utf-8
+# vim:fileencoding=utf-8
 
 from cynops import Relation
 from unittest import TestCase, TestLoader, TextTestRunner
@@ -147,9 +147,28 @@ class TestRelation(TestCase):
         psd.add({'SNAME': 'Adams',
                  'STATUS': 30,
                  'CITY': 'Athens'})
-        self.assertEqual(self.s.project(frozenset(['SNAME',
-                                                   'CITY',
-                                                   'STATUS'])), psd)
+        test = self.s.project(frozenset(['SNAME', 'CITY', 'STATUS']))
+        self.assertEqual(test, psd)
+
+    def test_all_but(self):
+        psd = Relation(frozenset(['SNAME', 'CITY', 'STATUS']))
+        psd.add({'SNAME': 'Smith',
+                 'STATUS': 20,
+                 'CITY': 'London'})
+        psd.add({'SNAME': 'Jones',
+                 'STATUS': 10,
+                 'CITY': 'Paris'})
+        psd.add({'SNAME': 'Blake',
+                 'STATUS': 30,
+                 'CITY': 'Paris'})
+        psd.add({'SNAME': 'Clark',
+                 'STATUS': 20,
+                 'CITY': 'London'})
+        psd.add({'SNAME': 'Adams',
+                 'STATUS': 30,
+                 'CITY': 'Athens'})
+        test = self.s.all_but(frozenset(['SNO']))
+        self.assertEqual(test, psd)
 
     def test_join(self):
         psd = Relation(frozenset(['SNO', 'SNAME', 'STATUS',
@@ -234,17 +253,39 @@ class TestRelation(TestCase):
                     'COLOR': 'Red',
                     'WEIGHT': 19.0,
                     'CITY': 'London'})
-        self.assertEqual(self.s.join(self.p), psd)
+        test = self.s.join(self.p)
+        self.assertEqual(test, psd)
+
+    def test_intersect(self):
+        attr = frozenset(['CITY'])
+        psd = Relation(attr)
+        psd.add({'CITY': 'London'})
+        psd.add({'CITY': 'Paris'})
+        psd.add({'CITY': 'Athens'})
+        test = self.s.project(attr).intersect(self.p.project(attr))
+        self.assertEqual(test, psd)
 
     def test_union(self):
-        psd = Relation(frozenset(['CITY']))
+        attr = frozenset(['CITY'])
+        psd = Relation(attr)
         psd.add({'CITY': 'London'})
         psd.add({'CITY': 'Paris'})
         psd.add({'CITY': 'Athens'})
         psd.add({'CITY': 'Oslo'})
+        test = self.s.project(attr).union(self.p.project(attr))
+        self.assertEqual(test, psd)
+
+    def test_d_union(self):
         attr = frozenset(['CITY'])
-        self.assertEqual(self.s.project(attr).union(self.p.project(attr)),
-                         psd)
+        psd = Relation(attr)
+        psd.add({'CITY': 'London'})
+        psd.add({'CITY': 'Paris'})
+        psd.add({'CITY': 'Athens'})
+        psd.add({'CITY': 'Oslo'})
+        attr_val = {'CITY': 'Athens'}
+        test = self.s.project(attr).restrict(attr_val)
+        test = test.d_union(self.p.project(attr))
+        self.assertEqual(test, psd)
 
     def test_difference(self):
         psd = Relation(frozenset(['CITY']))
@@ -305,8 +346,6 @@ class TestRelation(TestCase):
                     'SCITY': 'Athens'})
         test = self.s.rename({'CITY': 'SCITY'})
         self.assertEqual(test, psd)
-        print '\n'
-        test.display()
 
     def test_display(self):
         print '\n'

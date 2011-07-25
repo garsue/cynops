@@ -47,7 +47,7 @@ class Relation(object):
         return result
 
     def project(self, target):
-        """Return projection. Argument is frozenset."""
+        """Return projection with target. Argument is frozenset."""
         result = Relation(target)
         result_ruple = {}
         for ruple in (dict(ruple) for ruple in self.body):
@@ -55,6 +55,11 @@ class Relation(object):
                 result_ruple[attr] = ruple[attr]
             result.add(result_ruple)
         return result
+
+    def all_but(self, reject_target):
+        """Return projection without target. Argument is frozenset."""
+        target = self.head - reject_target
+        return self.project(target)
 
     def join(self, other):
         """Return join. Argument is Relation"""
@@ -69,6 +74,11 @@ class Relation(object):
                     result.add(result_ruple)
         return result
 
+    def intersect(self, other):
+        """Return intersect. Argument is type-compatible Relation"""
+        if self.head == other.head:
+            return self.join(other)
+
     def union(self, other):
         """Return union. Argument is type-compatible Relation."""
         if self.head != other.head:
@@ -76,6 +86,11 @@ class Relation(object):
         result = Relation(self.head)
         result.body.update(self.body | other.body)
         return result
+
+    def d_union(self, other):
+        """Return disjoint union. Argument is type-compatible Relation."""
+        if self.body.isdisjoint(other.body):
+            return self.union(other)
 
     def difference(self, other):
         """Return difference. Argument is type-compatible Relation."""
